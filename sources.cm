@@ -4,6 +4,8 @@ Library
   functor EnableRules
   functor DisableRules
 
+  functor StyleGrader
+  functor CustomStyleGrader
   functor StyleProdGrader2
   structure StyleCombiner
 
