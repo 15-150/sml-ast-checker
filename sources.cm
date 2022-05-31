@@ -1,0 +1,85 @@
+Library
+  functor Run
+  structure Top
+is
+  $SMLNJ-BASIS/basis.cm
+  $smlnj/compiler/current.cm
+  $smlnj/compiler/x86.cm
+  $smlnj/viscomp/parser.cm
+  $smlnj/viscomp/basics.cm
+  $smlnj/viscomp/elabdata.cm
+  $smlnj/viscomp/elaborate.cm
+
+  $SMACKAGE/numbers/v1/sources.cm
+  $SMACKAGE/autograding/v1/sources.cm
+
+  $/json-lib.cm
+  $smlnj/cm/cm.cm
+
+  compat/sources.cm
+
+  ast-util/ast-traverse.sig
+  ast-util/ast-traverse.sml
+  ast-util/parse.sig
+  ast-util/parse.sml
+
+  io-util/simple-print.sml
+
+  checkers/open.sml
+  (* Add toplevel rules here *)
+
+  checkers/manual_check.sig
+  checkers/letval_pattern.sml
+  checkers/specs.sml
+  (* Add extra manual rules here *)
+
+  checkers/check.sig
+  checkers/append.sml
+  checkers/equals_option.sml
+  checkers/is_some.sml
+  checkers/equals_list.sml
+  checkers/if_bool_inv.sml
+  checkers/if_bool.sml
+  checkers/case_one_arm.sml
+  checkers/nested_if_case.sml
+  checkers/andalso.sml
+  checkers/orelse.sml
+  checkers/equals_true.sml
+  checkers/equals_false.sml
+  checkers/not_equals_true.sml
+  checkers/not_equals_false.sml
+  checkers/hash.sml
+  checkers/record.sml
+  checkers/while.sml
+  checkers/semicolons.sml
+  checkers/ref.sml
+  checkers/hdtl.sml
+  checkers/case_bool.sml
+  checkers/case_bool_inv.sml
+  checkers/raise_handle.sml
+  checkers/modules.sml
+  checkers/exceptions.sml
+  checkers/types.sml
+  (* Add extra rules here *)
+
+  (* autograding infrastructure *)
+  (* rules *)
+  main/rules/all_rules.sml
+  main/rules/rules.sig
+  main/rules/rules.sml
+  main/rules/enable_rules.sml
+  main/rules/disable_rules.sml
+  (* graders *)
+  main/grader/grader.sig
+  main/grader/grader.sml
+  main/grader/custom_style_grader.sml
+  main/grader/style_grader.sml
+
+  (* todo move these to autograding library *)
+  main/grader/style_prod_grader.sml
+  main/grader/style_combiner.sml
+
+  main/cm_sources.sml
+  main/run.sml
+  main/top.sml
+

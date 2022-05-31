@@ -1,0 +1,19 @@
+Library
+  structure ExtractLiteral
+  structure Dec
+is
+  $/basis.cm
+  $smlnj/compiler/current.cm
+
+
+#if SMLNJ_MINOR_VERSION >= 83
+  extract-literal.sml
+#else
+  extract-literal-old.sml
+#endif
+
+#if SMLNJ_MINOR_VERSION >= 97
+  dec.sml
+#else
+  dec-old.sml
+#endif

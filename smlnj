@@ -1,0 +1,13 @@
+#!/bin/sh
+
+SML="sml"
+
+[ -x "$(command -v rlwrap)" ] &&
+  SML="rlwrap $SML" ||
+  echo "WARNING: rlwrap not installed; keyboard movement will not be available."
+
+$SML @SMLload limit-sml.amd64-darwin "$@" && exec \
+  env CM_LOCAL_PATHCONFIG=${CM_LOCAL_PATHCONFIG:-$(dirname "$0")/../../lib/pathconfig} \
+  env COMPILER_MC_WARN_NON_EXHAUSTIVE_BIND=${COMPILER_MC_WARN_NON_EXHAUSTIVE_BIND:-false} \
+  env PRINT_DEPTH=${PRINT_DEPTH:-10} \
+  $SML "$@"
