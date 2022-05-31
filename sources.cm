@@ -1,6 +1,6 @@
-Library
-  functor Run
-  structure Top
+Group
+  (* functor Run
+  structure Top *)
 is
   $SMLNJ-BASIS/basis.cm
   $smlnj/compiler/current.cm
