@@ -1,6 +1,14 @@
-Group
-  (* functor Run
-  structure Top *)
+Library
+  structure AllRules
+  functor Rules
+  functor EnableRules
+  functor DisableRules
+
+  functor StyleProdGrader2
+  structure StyleCombiner
+
+  functor Run
+  structure Top
 is
   $SMLNJ-BASIS/basis.cm
   $smlnj/compiler/current.cm
