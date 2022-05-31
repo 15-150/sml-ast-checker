@@ -1,6 +1,0 @@
-description: SML/NJ AST Checker
-maintainer: Thea Brick <tbrick@andrew.cmu.edu>
-keywords: ast checker verification
-bug-url: https://github.com/15-150/sml-ast-checker/issues
-requires: numbers v1
-requires: autograding v1
