@@ -4,6 +4,7 @@ functor DisableRules (val disable : AllRules.rule list) : RULES =
        val always_disabled =
          [ AllRules.Andalso
          , AllRules.Exceptions
+         , AllRules.HdTl
          , AllRules.IsSomeOption
          , AllRules.Modules
          , AllRules.Orelse
