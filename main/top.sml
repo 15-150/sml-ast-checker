@@ -27,7 +27,6 @@ structure Top :
             , Exceptions
             , Modules
             , Open
-            , Types
             ]))
     end
 
