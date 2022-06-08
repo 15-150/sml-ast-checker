@@ -19,8 +19,9 @@ struct
       | CharExp s => []
       | ConstraintExp {expr:exp, constraint:ty} => (find_exp expr tail)
       (* help *)
-      | FlatAppExp exp_fixitems => raise Fail "todo fixity"
-          (* List.map (fixitem tail) exp_fixitems *)
+      | FlatAppExp [] => []
+      | FlatAppExp exp_fixitems => (print "TODO: fixity!!!!";
+          (fixitem tail (List.hd exp_fixitems)) @ List.concat (List.map (fixitem tail) exp_fixitems))
       | FnExp rules => List.concat (List.map (find_rule tail) rules)
       | HandleExp {expr:exp, rules:rule list} =>
           (find_exp expr false) @ List.concat (List.map (find_rule tail) rules)
