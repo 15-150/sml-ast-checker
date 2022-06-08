@@ -22,7 +22,7 @@ struct
       | FlatAppExp [] => []
       | FlatAppExp (exp_fixitem::exp_fixitems) => (print "TODO: fixity!!!!";
           (fixitem tail exp_fixitem) @ List.concat (List.map (fixitem false) exp_fixitems))
-      | FnExp rules => List.concat (List.map (find_rule tail) rules)
+      | FnExp rules => List.concat (List.map (find_rule true) rules)
       | HandleExp {expr:exp, rules:rule list} =>
           (find_exp expr false) @ List.concat (List.map (find_rule tail) rules)
       | IfExp {test : exp, thenCase : exp, elseCase : exp} =>
