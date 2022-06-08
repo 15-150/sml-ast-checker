@@ -127,7 +127,7 @@ structure Lint : LINT =
     fun pp_sym s = Symbol.name s
 
     fun pp_symbol_list symbols = pp_seq "." pp_sym symbols
-     
+
 
     (* TYPES *)
     fun ppTyvar tyv =
