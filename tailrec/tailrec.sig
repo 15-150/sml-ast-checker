@@ -3,6 +3,6 @@ signature TAIL_REC =
     type var = Ast.path * Ast.region option
     type function = var * bool
 
-    val find_exp : Ast.exp -> bool -> function list
-    val find_dec : Ast.dec -> bool -> function list
+    val find_exp : bool -> Ast.exp -> function list
+    val find_dec : bool -> Ast.dec -> function list
   end
