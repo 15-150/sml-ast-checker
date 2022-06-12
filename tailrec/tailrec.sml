@@ -1,4 +1,4 @@
-structure TailRec =
+structure TailRec : TAIL_REC =
 struct
   open Ast
 
@@ -40,7 +40,7 @@ struct
       | RealExp s => []
       | RecordExp fields =>
           List.concat (List.map (fn (x, e) => find_exp e false) fields)
-      | SelectorExp sym => raise Fail "todo maybe?"
+      | SelectorExp sym => [(([sym], NONE), tail)]
       | SeqExp [] => []
       | SeqExp exps =>
           find_exp (List.last exps) tail
@@ -51,7 +51,8 @@ struct
       | VarExp path => [((path, NONE), tail)]
       | VectorExp exps =>
           List.concat (List.map (fn x => find_exp x false) exps)
-      | WhileExp {test:exp, expr:exp} => raise Fail "todo maybe?"
+      | WhileExp {test:exp, expr:exp} =>
+          find_exp test false @ find_exp expr false
       | WordExp i => []
 
   and find_dec dec tail =
