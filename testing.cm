@@ -3,8 +3,9 @@ Group
   structure AstTraverse
   structure Parse
   structure Lint
-  
+
   structure TailRec
+  structure FixityTable
 is
   $SMLNJ-BASIS/basis.cm
   $smlnj/compiler/current.cm
@@ -23,4 +24,7 @@ is
 
   io-util/simple-print.sml
 
+  tailrec/tailrec.sig
   tailrec/tailrec.sml
+  tailrec/fixity_table.sig
+  tailrec/fixity_table.sml
