@@ -1,5 +1,7 @@
 structure TailRec : TAIL_REC =
 struct
+
+  structure FT = FixityTable
   open Ast
 
   type var = path * region option
@@ -81,18 +83,18 @@ struct
   and find_fb tail fb =
     case fb of
       MarkFb (fb, region) => List.map (regionify region) (find_fb tail fb)
-    | Fb (clss, b) => List.concat (List.map (find_clause tail) clss)
+    | Fb (clss, b) => List.concatMap (find_clause tail) clss
   and find_vb tail vb =
     case vb of
       MarkVb (vb, region) => List.map (regionify region) (find_vb tail vb)
-    | Vb {exp,lazyp,pat} => find_exp exp tail
+    | Vb {exp,lazyp,pat} => find_exp tail exp
   and find_rvb tail rvb =
     case rvb of
       MarkRvb (rvb, region) => List.map (regionify region) (find_rvb tail rvb)
-    | Rvb {exp,fixity,lazyp,resultty, var} => find_exp exp tail
-  and find_clause tail (Clause {exp, pats, resultty}) = find_exp exp tail
-  and find_rule tail (Rule {exp, pat}) = find_exp exp tail
+    | Rvb {exp,fixity,lazyp,resultty, var} => find_exp tail exp
+  and find_clause tail (Clause {exp, pats, resultty}) = find_exp tail exp
+  and find_rule tail (Rule {exp, pat}) = find_exp tail exp
   and fixitem tail {fixity, item, region} =
-    List.map (regionify region) (find_exp item tail)
+    List.map (regionify region) (find_exp tail item)
 
 end
