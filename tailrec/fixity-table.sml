@@ -44,17 +44,16 @@ struct
         symopt
     |> Option.mapPartial (lookup table)
     |> Option.mapPartial fixityToVal
-  fun regionify region = Option.map (fn x => (x, region))
 
   (* accumulated list is reversed *)
-  fun findMax table (item as (symopt,region)) (v, acc) =
+  fun findMin table (item as (symopt,_)) (v, acc) =
     case v of
-        NONE => (symOptToVal table symopt, item::acc)
+        NONE => (symOptToVal table symopt, [item])
       | SOME (i, left) => (
         case symOptToVal table symopt of
           NONE => (v, acc)
         | SOME (j, left') =>
-          if j > i
+          if j < i
           then (SOME (j, left'), [item])
           else if i = j
           (* left beats right associative when conflicting, hence the andalso *)
@@ -62,9 +61,9 @@ struct
           else (v, acc)
       )
 
-  fun maxFixitySymbols table args =
+  fun minFixitySymbols table args =
     let
-      val (v, acc) = List.foldl (Fn.uncurry (findMax table)) (NONE, []) args
+      val (v, acc) = List.foldl (Fn.uncurry (findMin table)) (NONE, []) args
     in
       (v, List.rev acc)
     end
@@ -72,11 +71,11 @@ struct
   fun findOuterSymbol table [] = NONE
     | findOuterSymbol table args =
       let
-        val (fixopt, syms) = maxFixitySymbols table args
+        val (fixopt, syms) = minFixitySymbols table args
       in
         case fixopt of
             NONE => SOME (List.hd args)
-          | SOME (_, left) => SOME ((if left then List.hd else List.last) syms)
+          | SOME (_, left) => SOME ((if left then List.last else List.hd) syms)
       end
 
 end

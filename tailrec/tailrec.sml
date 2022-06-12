@@ -20,10 +20,21 @@ struct
           (find_exp false expr) @ List.concat (List.map (find_rule tail) rules)
       | CharExp s => []
       | ConstraintExp {expr:exp, constraint:ty} => (find_exp tail expr)
-      (* help *)
       | FlatAppExp [] => []
-      | FlatAppExp (exp_fixitem::exp_fixitems) => (print "TODO: fixity!!!!";
-          (fixitem tail exp_fixitem) @ List.concat (List.map (fixitem false) exp_fixitems))
+      | FlatAppExp exp_fixitems =>
+          let
+            val tuplified = List.mapi (fn (i, {fixity, item, region}) => (fixity, i)) exp_fixitems
+            val table = (print "TODO: update fixity table"; FT.basis)
+          in
+            case FT.findOuterSymbol table tuplified of
+                NONE => (* No fixity information, the first thing must be tail *)
+                  (print "no fixity info found";
+                  (fixitem tail (List.hd exp_fixitems))
+                  @ List.concatMap (fixitem false) (List.tl exp_fixitems))
+              | SOME (_, t) => (* t = index of tail position *)
+                (print ("found fixity" ^ Int.toString t);
+                  List.concatMapi (fn (i, x) => fixitem (tail andalso i = t) x) exp_fixitems)
+          end
       | FnExp rules => List.concat (List.map (find_rule true) rules)
       | HandleExp {expr:exp, rules:rule list} =>
           (find_exp false expr) @ List.concat (List.map (find_rule tail) rules)

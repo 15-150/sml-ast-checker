@@ -13,10 +13,10 @@ signature FIXITY_TABLE =
     val fixityToVal : Fixity.fixity -> (int * bool) option
     val symOptToVal : table -> Symbol.symbol option -> (int * bool) option
 
-    val maxFixitySymbols : table
-                        -> (Symbol.symbol option * Ast.region) list
-                        -> (int * bool) option * (Symbol.symbol option * Ast.region) list
+    val minFixitySymbols : table
+                        -> (Symbol.symbol option * 'a) list
+                        -> (int * bool) option * (Symbol.symbol option * 'a) list
     val findOuterSymbol : table
-                       -> (Symbol.symbol option * Ast.region) list
-                       -> (Symbol.symbol option * Ast.region) option
+                       -> (Symbol.symbol option * 'a) list
+                       -> (Symbol.symbol option * 'a) option
   end

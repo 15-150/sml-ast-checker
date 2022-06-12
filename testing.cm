@@ -26,5 +26,5 @@ is
 
   tailrec/tailrec.sig
   tailrec/tailrec.sml
-  tailrec/fixity_table.sig
-  tailrec/fixity_table.sml
+  tailrec/fixity-table.sig
+  tailrec/fixity-table.sml
