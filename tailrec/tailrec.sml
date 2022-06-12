@@ -17,7 +17,7 @@ struct
       | AppExp {argument:exp, function:exp} =>
           (find_exp false argument) @ (find_exp tail function)
       | CaseExp {expr:exp, rules:rule list} =>
-          (find_exp false expr) @ List.concat (List.map (find_rule tail) rules)
+          (find_exp false expr) @ List.concatMap (find_rule tail) rules
       | CharExp s => []
       | ConstraintExp {expr:exp, constraint:ty} => (find_exp tail expr)
       | FlatAppExp [] => []
@@ -33,9 +33,9 @@ struct
               | SOME (_, t) => (* t = index of tail position *)
                   List.concatMapi (fn (i, x) => fixitem (tail andalso i = t) x) exp_fixitems
           end
-      | FnExp rules => List.concat (List.map (find_rule true) rules)
+      | FnExp rules => List.concatMap (find_rule true) rules
       | HandleExp {expr:exp, rules:rule list} =>
-          (find_exp false expr) @ List.concat (List.map (find_rule tail) rules)
+          (find_exp false expr) @ List.concatMap (find_rule tail) rules
       | IfExp {test : exp, thenCase : exp, elseCase : exp} =>
           (find_exp false test) @ (find_exp tail thenCase) @ (find_exp tail elseCase)
       | IntExp i => []
