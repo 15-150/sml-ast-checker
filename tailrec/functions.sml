@@ -1,4 +1,4 @@
-structure Functions = 
+structure Functions =
 struct
   open Ast
 
@@ -21,13 +21,13 @@ struct
       | ConstraintExp {expr:exp, constraint:ty} => (find_fns_from_exp fb expr)
       (* help *)
       | FlatAppExp [] => []
-      | FlatAppExp exp_fixitems => 
+      | FlatAppExp exp_fixitems =>
           concatMap (fixitem_exp fb) exp_fixitems
-      | FnExp rules => concatMap (find_fns_from_rule fb) rules 
+      | FnExp rules => concatMap (find_fns_from_rule fb) rules
       | HandleExp {expr:exp, rules:rule list} =>
           (find_fns_from_exp fb expr) @ concatMap (find_fns_from_rule fb) rules
       | IfExp {test : exp, thenCase : exp, elseCase : exp} =>
-          (find_fns_from_exp fb test) 
+          (find_fns_from_exp fb test)
           @ (find_fns_from_exp fb thenCase) @ (find_fns_from_exp fb elseCase)
       | IntExp i => []
       | LetExp {dec:dec, expr:exp} =>
@@ -75,13 +75,13 @@ struct
       | ValrecDec (rvbs, tys) => concatMap (find_fns_from_rvb fb) rvbs
 
   and find_fns_from_rule fb (Rule {exp, pat}) = find_fns_from_exp fb exp
-  
-  and find_fns_from_fb fb = 
+
+  and find_fns_from_fb fb =
     case fb of
       MarkFb (fb', region) => List.map (regionify region) (find_fns_from_fb fb')
     | Fb (clauses, b) => concatMap (find_fns_from_clause fb) clauses
 
-  and find_fns_from_clause (fb : fb) (Clause {exp, pats, resultty}) = 
+  and find_fns_from_clause (fb : fb) (Clause {exp, pats, resultty}) =
     (find_fns_from_exp (SOME fb) exp)
     @ (fixitem_pat fb (List.hd pats)) (* First elem is fn name, rest are params *)
 
