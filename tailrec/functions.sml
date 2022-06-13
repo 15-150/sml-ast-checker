@@ -7,6 +7,8 @@ struct
   fun regionify region (path, NONE, fb) = (path, SOME region, fb)
     | regionify _ function = function
 
+  (* Returns a list of (path, region, fb), where fb is the function body
+   * from the ast for the current function *)
   fun find_fns_from_exp (fb : fb option) exp =
     case exp of
         AndalsoExp (e1, e2) =>
@@ -85,10 +87,26 @@ struct
 
   and find_fns_from_pat fb pat =
     case pat of
-      MarkPat (pat', region) => 
+      AppPat {argument, constr} => 
+        (find_fns_from_pat fb argument) @ (find_fns_from_pat fb constr)
+    | CharPat s => []
+    | ConstraintPat {constraint, pattern} => find_fns_from_pat fb pattern
+    | FlatAppPat pats => concatMap (fixitem_pat fb) pats
+    | IntPat x => []
+    | LayeredPat {expPat, varPat} => 
+        (find_fns_from_pat fb expPat) @ (find_fns_from_pat fb varPat)
+    | ListPat pats => concatMap (find_fns_from_pat fb) pats
+    | MarkPat (pat', region) => 
         List.map (regionify region) (find_fns_from_pat fb pat')
+    | OrPat pats => concatMap (find_fns_from_pat fb) pats
+    | RecordPat {def, flexibility} =>
+        concatMap (fn (symbol, pat) => find_fns_from_pat fb pat) def
+    | StringPat s => []
+    | TuplePat pats => concatMap (find_fns_from_pat fb) pats
     | VarPat path => [(path, NONE, fb)]
-    | _ => (print "TODO: Other cases of pats\n"; [])
+    | VectorPat pats => concatMap (find_fns_from_pat fb) pats
+    | WildPat => []
+    | WordPat x => []
 
     (* AppPat of {argument:pat, constr:pat}
   | CharPat of string

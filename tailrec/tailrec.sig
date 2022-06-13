@@ -5,4 +5,5 @@ signature TAIL_REC =
 
     val find_exp : bool -> Ast.exp -> function list
     val find_dec : bool -> Ast.dec -> function list
+    val find_fb : bool -> Ast.fb -> function list
   end
