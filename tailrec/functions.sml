@@ -108,23 +108,6 @@ struct
     | WildPat => []
     | WordPat x => []
 
-    (* AppPat of {argument:pat, constr:pat}
-  | CharPat of string
-  | ConstraintPat of {constraint:ty, pattern:pat}
-  | FlatAppPat of pat fixitem list
-  | IntPat of literal
-  | LayeredPat of {expPat:pat, varPat:pat}
-  | ListPat of pat list
-  | MarkPat of pat * region
-  | OrPat of pat list
-  | RecordPat of {def:(symbol * pat) list, flexibility:bool}
-  | StringPat of string
-  | TuplePat of pat list
-  | VarPat of path
-  | VectorPat of pat list
-  | WildPat
-  | WordPat of literal *)
-
   and find_fns_from_vb fb vb =
     case vb of
       MarkVb (vb, region) => List.map (regionify region) (find_fns_from_vb fb vb)
