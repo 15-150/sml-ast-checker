@@ -6,10 +6,10 @@ struct
   (* Assumes the function is recursive, identifies Recursive or TailRecursive *)
   fun getRecursiveFunctionType function decs =
     let
-      val recursiveCalls = 
+      val recursiveCalls =
         List.filter (fn ((symbols, _), _) => function = symbols) decs
       val numRecursiveCalls = List.length recursiveCalls
-      val numTailRecursiveCalls = 
+      val numTailRecursiveCalls =
         List.length (List.filter (fn ((_, _), tailRec) => tailRec) recursiveCalls)
     in
       if numRecursiveCalls = numTailRecursiveCalls
@@ -19,7 +19,7 @@ struct
   fun getFunctionType ((function, region, fb) : Ast.path * Ast.region option * Ast.fb) =
     let
       val decs = TailRec.find_fb true fb
-      val t = 
+      val t =
         if List.exists (fn ((symbols, _), _) => function = symbols) decs
         then getRecursiveFunctionType function decs
         else NonRecursive
