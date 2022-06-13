@@ -5,6 +5,8 @@ Group
   structure Lint
   
   structure TailRec
+  structure Functions
+  structure FunctionClassification
 is
   $SMLNJ-BASIS/basis.cm
   $smlnj/compiler/current.cm
@@ -24,3 +26,5 @@ is
   io-util/simple-print.sml
 
   tailrec/tailrec.sml
+  tailrec/functions.sml
+  tailrec/fun-classification.sml

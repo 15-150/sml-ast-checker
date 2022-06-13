@@ -1,3 +1,8 @@
-fun test a = op a (1,2)
+fun foo k 0 = k 1
+  | foo k x = foo (fn y => k (y + x)) (x - 1)
 
-val x = test 1 2
+fun foo x y = op+ (op+ (x, 1), y)
+
+(* fun f x = f (x - 1)
+
+fun g x = List.length x *)
