@@ -14,4 +14,9 @@ fun fact 0 = 1
 fun factCPS 0 k = k 1
   | factCPS n k = factCPS (n - 1) (fn res => k (n * res))
 
+
 (* fun ahh k x = foo k x *)
+
+(* fixity tests *)
+(* fun x + y = x + y
+fun op- (x,y) = x - y *)

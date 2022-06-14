@@ -90,7 +90,7 @@ struct
       val source = Parse.getSource fileName
       val ast = SmlFile.parse source
       val fns = Functions.find_fns_from_dec NONE ast
-      val results = List.rev (classifyFunctions init_classifications fns)
+      val results = classifyFunctions init_classifications fns
     in
       List.filter (fn (f1,t1) =>
         not (List.exists (fn (f2, t2) => symbols_eq (f1, f2) andalso eq (t1, t2)) init_classifications)

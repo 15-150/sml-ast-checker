@@ -1,5 +1,6 @@
 structure Functions =
 struct
+  structure FT = FixityTable
   open Ast
 
   fun concatMap f L = List.concat (List.map f L)
@@ -82,21 +83,29 @@ struct
     | Fb (clauses, b) => concatMap (find_fns_from_clause fb) clauses
 
   and find_fns_from_clause (fb : fb) (Clause {exp, pats, resultty}) =
-    (find_fns_from_exp (SOME fb) exp)
-    @ (fixitem_pat fb (List.hd pats)) (* First elem is fn name, rest are params *)
+    let
+      val tuplified = List.mapi (fn (i, {fixity, item, region}) => (fixity, i)) pats
+      val table = FT.basis (* TODO: update this table! *)
+      val name =
+        case FT.findOuterSymbol table tuplified of
+            NONE => List.hd pats (* No fixity information, the first thing must be function *)
+          | SOME (_, t) => List.nth (pats, t) (* t = index of outer position *)
+    in
+      (find_fns_from_exp (SOME fb) exp) @ (fixitem_pat fb name)
+    end
 
   and find_fns_from_pat fb pat =
     case pat of
-      AppPat {argument, constr} => 
+      AppPat {argument, constr} =>
         (find_fns_from_pat fb argument) @ (find_fns_from_pat fb constr)
     | CharPat s => []
     | ConstraintPat {constraint, pattern} => find_fns_from_pat fb pattern
     | FlatAppPat pats => concatMap (fixitem_pat fb) pats
     | IntPat x => []
-    | LayeredPat {expPat, varPat} => 
+    | LayeredPat {expPat, varPat} =>
         (find_fns_from_pat fb expPat) @ (find_fns_from_pat fb varPat)
     | ListPat pats => concatMap (find_fns_from_pat fb) pats
-    | MarkPat (pat', region) => 
+    | MarkPat (pat', region) =>
         List.map (regionify region) (find_fns_from_pat fb pat')
     | OrPat pats => concatMap (find_fns_from_pat fb) pats
     | RecordPat {def, flexibility} =>
