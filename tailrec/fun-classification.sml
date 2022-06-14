@@ -8,6 +8,26 @@ struct
     | TailRecursive
   type function = t
 
+  local
+    val to_path = List.rev o List.mapi (
+        fn (0, sym) => Symbol.varSymbol sym
+         | (_, sym) => Symbol.strSymbol sym) o List.rev
+  in
+  (* Basing these off of how we teach them, not their NJ implementation *)
+    val init_classifications = List.map (fn (syms, cls) => (to_path syms, cls))
+      [ (["length"], Recursive)
+      , (["@"], Recursive)
+      , (["rev"], Recursive)
+      , (["List", "tabulate"], Recursive)
+      , (["map"], Recursive)
+      , (["List", "mapPartial"], Recursive)
+      , (["List", "filter"], Recursive)
+      , (["foldl"], TailRecursive)
+      , (["foldr"], Recursive)
+      , (["List", "zip"], Recursive)
+      ]
+  end
+
   val symbols_eq = ListPair.allEq Symbol.eq
   val symbols_neq = not o symbols_eq
 
@@ -70,7 +90,10 @@ struct
       val source = Parse.getSource fileName
       val ast = SmlFile.parse source
       val fns = Functions.find_fns_from_dec NONE ast
+      val results = List.rev (classifyFunctions init_classifications fns)
     in
-      classifyFunctions [] fns
+      List.filter (fn (f1,t1) =>
+        not (List.exists (fn (f2, t2) => symbols_eq (f1, f2) andalso eq (t1, t2)) init_classifications)
+      ) results
     end
 end
