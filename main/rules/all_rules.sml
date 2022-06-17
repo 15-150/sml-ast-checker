@@ -52,7 +52,6 @@ structure AllRules =
       , (NestedIfCase, NestedIfCase.check, NestedIfCase.warning, NestedIfCase.hint, 5)
       , (NotEqualsFalse, NotEqualsFalse.check, NotEqualsFalse.warning, NotEqualsFalse.hint, 5)
       , (NotEqualsTrue, NotEqualsTrue.check, NotEqualsTrue.warning, NotEqualsTrue.hint, 5)
-      , (NotEqualsTrue, NestedIfCase.check, NestedIfCase.warning, NestedIfCase.hint, 5)
       , (Orelse, Orelse.check, Orelse.warning, Orelse.hint, 5)
       , (RaiseHandle, RaiseHandle.check, RaiseHandle.warning, RaiseHandle.hint, 5)
       , (Record, Record.check, Record.warning, Record.hint, 5)
