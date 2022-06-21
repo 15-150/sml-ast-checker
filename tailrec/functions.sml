@@ -79,7 +79,8 @@ struct
   and find_fns_from_fb fb =
     case fb of
       MarkFb (fb', region) => List.map (regionify region) (find_fns_from_fb fb')
-    | Fb (clauses, b) => concatMap (find_fns_from_clause fb) clauses
+      (* Every clause is from the same function, so we just need to get the function from the first clause *)
+    | Fb (clauses, b) => find_fns_from_clause fb (List.hd clauses)
 
   and find_fns_from_clause (fb : fb) (Clause {exp, pats, resultty}) =
     (find_fns_from_exp (SOME fb) exp)

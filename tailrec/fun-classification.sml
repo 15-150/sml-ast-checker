@@ -28,10 +28,11 @@ struct
         List.filter (fn (f1, _, _) => List.exists (fn ((f2, _), _) => f1 = f2) nonSelfCalls) allFns
 
       val calledFnClassifications = classifyFunctions [] fnsNonSelfCalls
-      val recursiveCalls = List.exists (fn (f, t) => t = Recursive orelse t = TailRecursive) calledFnClassifications
-      val allTailRecursiveCalls = List.all (fn (f, t) => t = TailRecursive orelse t = NonRecursive) calledFnClassifications
+      val recursiveCalls = 
+        List.exists (fn (f, t) => t = Recursive orelse t = TailRecursive) calledFnClassifications
+      val allTailRecursiveCalls = 
+        List.all (fn (f, t) => t = TailRecursive orelse t = NonRecursive) calledFnClassifications
     in
-
       case (callsSelf, recursiveCalls, allTailRecursiveCalls) of
         (false, false, _) => (function, NonRecursive) :: (calledFnClassifications @ classifications)
       | (_, true, false) => (function, Recursive) :: (calledFnClassifications @ classifications)
