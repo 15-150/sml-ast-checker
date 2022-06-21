@@ -24,7 +24,7 @@ struct
       | FlatAppExp exp_fixitems =>
           let
             val tuplified = List.mapi (fn (i, {fixity, item, region}) => (fixity, i)) exp_fixitems
-            val table = (print "TODO: update fixity table\n"; FT.basis)
+            val table = FT.basis (* TODO: update this table! *)
           in
             case FT.findOuterSymbol table tuplified of
                 NONE => (* No fixity information, the first thing must be tail *)
