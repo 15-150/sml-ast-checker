@@ -1,3 +1,19 @@
+.DS_Store
 .cm
+*.zip
+*.tar
+*.pdf
+*.synctex.gz
+*.log
+*.aux
+*.out
+*.sta
+*.toc
+*.swp
+*.swo
+*.fdb_latexmk
+*.fls
+*.__afs*
+__pycache__/
 
 *.amd64-darwin
