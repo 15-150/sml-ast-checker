@@ -87,15 +87,16 @@ struct
   and classifyFunctions classifications fns =
     List.foldl (getFunctionType fns) classifications fns
 
-  fun run fileName =
+  fun classifyAst dec =
     let
-      val source = Parse.getSource fileName
-      val ast = SmlFile.parse source
-      val fns = Functions.find_fns_from_dec NONE ast
+      val fns = Functions.find_fns_from_dec NONE dec
       val results = classifyFunctions init_classifications fns
     in
       List.filter (fn (f1,t1) =>
         not (List.exists (fn (f2, t2) => symbols_eq (f1, f2) andalso eq (t1, t2)) init_classifications)
       ) results
     end
+
+  val run = classifyAst o Parse.parseFile
+
 end

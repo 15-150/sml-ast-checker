@@ -134,4 +134,13 @@ struct
   and fixitem_pat fb {fixity, item, region} =
     List.map (regionify region) (find_fns_from_pat fb item)
 
+  fun getFunName table pats =
+    let
+      val tuplified = List.mapi (fn (i, {fixity, item, region}) => (fixity, i)) pats
+    in
+      case FT.findOuterSymbol table tuplified of
+        NONE => List.hd pats (* No fixity information, the first thing must be function *)
+      | SOME (_, t) => List.nth (pats, t) (* t = index of outer position *)
+    end
+
 end
