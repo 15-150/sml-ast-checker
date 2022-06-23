@@ -29,6 +29,7 @@ struct
     fn ((s, f), NONE) => if Symbol.eq (s, sym) then SOME f else NONE
      | (_, acc)       => acc) NONE table
   fun insert table (sym, fixity) = (sym, fixity)::table
+  fun insertAll table fixity syms = List.map (fn s => (s, fixity)) syms @ table
   fun merge t1 t2 = t1 @ t2
   fun trim table = List.foldl (fn ((sym, fixity), acc) =>
     if List.exists (Fn.curry Symbol.eq sym o fst) acc

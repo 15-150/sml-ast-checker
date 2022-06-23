@@ -56,19 +56,19 @@ struct
       (function, fnType)
     end
 
-  fun addFunctionType allFns function fb classifications =
+  fun addFunctionType allFns function fb table classifications =
     let
-      val fnCalls = TailRec.find_fb true fb
+      val fnCalls = TailRec.find_fb table true fb
       val callsSelf = List.exists (fn ((symbols, _), _) => symbols_eq (function, symbols)) fnCalls
 
       val nonSelfCalls = List.filter (fn ((f, _), _) => symbols_neq (function, f)) fnCalls
       val fnsNonSelfCalls =
-        List.filter (fn (f1, _, _) => List.exists (fn ((f2, _), _) => symbols_eq (f1,f2)) nonSelfCalls) allFns
+        List.filter (fn (f1, _, _, _) => List.exists (fn ((f2, _), _) => symbols_eq (f1,f2)) nonSelfCalls) allFns
 
       val calledFnClassifications = classifyFunctions [] fnsNonSelfCalls
-      val recursiveCalls = 
+      val recursiveCalls =
         List.exists (fn (f, t) => t = Recursive orelse t = TailRecursive) calledFnClassifications
-      val allTailRecursiveCalls = 
+      val allTailRecursiveCalls =
         List.all (fn (f, t) => t = TailRecursive orelse t = NonRecursive) calledFnClassifications
     in
       (case (callsSelf, recursiveCalls, allTailRecursiveCalls) of
@@ -79,17 +79,17 @@ struct
       ) :: (calledFnClassifications @ classifications)
     end
 
-  and getFunctionType allFns ((function, region, fb), classifications) =
+  and getFunctionType allFns ((function, region, fb, table), classifications) =
     case List.find (fn (f, _) => symbols_eq (function, f)) classifications of
         SOME (_, t) => classifications (* Function has already been classified *)
-      | NONE => addFunctionType allFns function fb classifications
+      | NONE => addFunctionType allFns function fb table classifications
 
   and classifyFunctions classifications fns =
     List.foldl (getFunctionType fns) classifications fns
 
   fun classifyAst dec =
     let
-      val fns = Functions.find_fns_from_dec NONE dec
+      val (fns, _) = Functions.find_fns_from_dec FixityTable.basis NONE dec
       val results = classifyFunctions init_classifications fns
     in
       List.filter (fn (f1,t1) =>

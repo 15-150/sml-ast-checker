@@ -7,6 +7,7 @@ signature FIXITY_TABLE =
     val stringToTable : int -> bool -> string -> table
     val lookup : table -> Symbol.symbol -> Fixity.fixity option
     val insert : table -> (Symbol.symbol * Fixity.fixity) -> table
+    val insertAll : table -> Fixity.fixity -> Symbol.symbol list -> table
     val merge : table -> table -> table
     val trim : table -> table
 
