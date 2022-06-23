@@ -21,3 +21,6 @@ fun factCPS 0 k = k 1
 infix 5 ++ --
 fun x ++ y = x + y
 fun op-- (x,y) = x - y
+
+nonfix +
+fun + x y = + x y
