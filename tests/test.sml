@@ -2,7 +2,7 @@ fun foo k 0 = k 1
   | foo k x = foo (fn y => k (y + x)) (x - 1)
 
 fun foo x y = op+ (op+ (x, 1), y)
-(* fun bar x y = x + 1 + y *)
+fun bar x y = x + 1 + y
 
 fun f x = f (x - 1)
 

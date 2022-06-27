@@ -109,8 +109,8 @@ struct
        * fb, which includes both functions, and parameters. Now we filter to
        * only identify types of the functions in allFns, which includes all the
        * functions defined in the file, and the fns in in init_classifications *)
-      val fnCalls = 
-        List.filter 
+      val fnCalls =
+        List.filter
           (fn ((f, r), t) => List.exists (fn (f', r') => symbols_eq (f, f')) allFns)
           variables
 
@@ -131,7 +131,7 @@ struct
         | (_, true, false) => ((function, region), Recursive)
         | (false, true, true) => ((function, region), TailRecursive)
         | (true, _, _) => getRecursiveFunctionType function region fnCalls
-      ) :: (calledFnClassifications @ classifications)
+      ) :: (classifications)
     end
 
   fun classifyFunctions (allFns : (Ast.path * Ast.region option) list) (fns : (Ast.path * Ast.region option * Ast.fb * FT.table) list) =
@@ -145,7 +145,7 @@ struct
         @ (List.map (fn (f, _) => f) init_classifications)
       val results = classifyFunctions allFns fnsToClassify
     in
-      results
+      List.rev results
     end
 
 end
