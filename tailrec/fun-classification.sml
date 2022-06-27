@@ -15,23 +15,42 @@ struct
          | (_, sym) => Symbol.strSymbol sym) o List.rev
   in
   (* Basing these off of how we teach them, not their NJ implementation *)
-    val init_classifications : ((Ast.path * Ast.region option) * function) list = List.map (fn ((syms, region), cls) => ((to_path syms, region), cls))
-      [ ((["length"], NONE), Recursive)
-      , ((["List", "length"], NONE), Recursive)
-      , ((["@"], NONE), Recursive)
-      , ((["rev"], NONE), Recursive)
-      , ((["List", "rev"], NONE), Recursive)
-      , ((["List", "tabulate"], NONE), Recursive)
-      , ((["map"], NONE), Recursive)
-      , ((["List", "map"], NONE), Recursive)
-      , ((["List", "mapPartial"], NONE), Recursive)
-      , ((["List", "filter"], NONE), Recursive)
-      , ((["foldl"], NONE), TailRecursive)
-      , ((["List", "foldl"], NONE), TailRecursive)
-      , ((["foldr"], NONE), Recursive)
-      , ((["List", "foldr"], NONE), Recursive)
-      , ((["List", "zip"], NONE), Recursive)
-      ]
+    val init_classifications : ((Ast.path * Ast.region option) * function) list =
+      List.map (fn ((syms, region), cls) => ((to_path syms, region), cls))
+        [ ((["length"], NONE), Recursive)
+        , ((["List", "length"], NONE), Recursive)
+        , ((["@"], NONE), Recursive)
+        , ((["rev"], NONE), Recursive)
+        , ((["List", "rev"], NONE), Recursive)
+        , ((["List", "tabulate"], NONE), Recursive)
+        , ((["map"], NONE), Recursive)
+        , ((["List", "map"], NONE), Recursive)
+        , ((["List", "mapPartial"], NONE), Recursive)
+        , ((["List", "filter"], NONE), Recursive)
+        , ((["foldl"], NONE), TailRecursive)
+        , ((["List", "foldl"], NONE), TailRecursive)
+        , ((["foldr"], NONE), Recursive)
+        , ((["List", "foldr"], NONE), Recursive)
+        , ((["List", "zip"], NONE), Recursive)
+        , ((["+"], NONE), NonRecursive)
+        , ((["-"], NONE), NonRecursive)
+        , ((["*"], NONE), NonRecursive)
+        , ((["/"], NONE), NonRecursive)
+        , ((["div"], NONE), NonRecursive)
+        , ((["mod"], NONE), NonRecursive)
+        , ((["^"], NONE), NonRecursive)
+        , ((["o"], NONE), NonRecursive)
+        , (([":="], NONE), NonRecursive)
+        , ((["before"], NONE), NonRecursive)
+        , ((["ignore"], NONE), NonRecursive)
+        , ((["@"], NONE), Recursive)
+        , ((["::"], NONE), NonRecursive)
+        , ((["="], NONE), NonRecursive)
+        , ((["<"], NONE), NonRecursive)
+        , (([">"], NONE), NonRecursive)
+        , ((["<="], NONE), NonRecursive)
+        , (([">="], NONE), NonRecursive)
+        ]
   end
 
   val symbols_eq = ListPair.allEq Symbol.eq
@@ -65,7 +84,7 @@ struct
     in
       case funAndType of
           SOME x => x
-        | NONE => raise Fail ("Type not yet found" ^ (listToString Symbol.symbolToString function))
+        | NONE => raise Fail ("Type not yet found " ^ (listToString Symbol.name function))
     end
 
   (* Assumes the function is recursive, identifies Recursive or TailRecursive *)
@@ -92,14 +111,14 @@ struct
        * functions defined in the file, and the fns in in init_classifications *)
       val fnCalls = 
         List.filter 
-          (fn ((f, r), t) => List.exists (fn (f', r') => symbols_eq (f, f')) allFns) 
+          (fn ((f, r), t) => List.exists (fn (f', r') => symbols_eq (f, f')) allFns)
           variables
 
       val callsSelf = List.exists (fn ((f, _), _) => symbols_eq (function, f)) fnCalls
 
-      val nonSelfCalls : ((Ast.path * Ast.region option) * bool) list = 
+      val nonSelfCalls : ((Ast.path * Ast.region option) * bool) list =
         List.filter (fn ((f, _), _) => symbols_neq (function, f)) fnCalls
-      val calledFnClassifications : ((Ast.path * Ast.region option) * function) list= 
+      val calledFnClassifications : ((Ast.path * Ast.region option) * function) list=
         List.map (lookupFunctionType classifications) (List.map (fn ((f, r), t) => f) nonSelfCalls)
 
       val recursiveCalls =
@@ -121,8 +140,8 @@ struct
   fun classifyAst dec =
     let
       val (fnsToClassify : (Ast.path * Ast.region option * Ast.fb * FT.t) list, _) = Functions.find_fns_from_dec FixityTable.basis NONE dec
-      val allFns = 
-        (List.map (fn (p, r, _, _) => (p, r)) fnsToClassify) 
+      val allFns =
+        (List.map (fn (p, r, _, _) => (p, r)) fnsToClassify)
         @ (List.map (fn (f, _) => f) init_classifications)
       val results = classifyFunctions allFns fnsToClassify
     in
