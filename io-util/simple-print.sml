@@ -579,14 +579,14 @@ structure Lint : LINT =
            | OvldDec x => pp_sym (# 1 (Dec.ovld x))
            | FixDec {fixity, ops} =>
                (case fixity of
-                  NONfix => "nonfix"
+                  NONfix => "nonfix " ^ pp_seq " " pp_sym ops
                 | INfix (i, _) =>
                     (if i mod 2 = 0 then
                        "infix "
                      else
                        "infixr ")
                     ^ (if i div 2 > 0 then
-                         Int.toString (i div 2)
+                         Int.toString (i div 2) ^ " "
                        else
                          "")
                     ^ pp_seq " " pp_sym ops)
