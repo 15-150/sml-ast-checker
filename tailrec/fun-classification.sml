@@ -1,5 +1,6 @@
 structure FunctionClassification =
 struct
+  structure FT = FixityTable
 
   datatype t
     = Unknown of Symbol.symbol list
@@ -14,22 +15,22 @@ struct
          | (_, sym) => Symbol.strSymbol sym) o List.rev
   in
   (* Basing these off of how we teach them, not their NJ implementation *)
-    val init_classifications = List.map (fn (syms, cls) => (to_path syms, cls))
-      [ (["length"], Recursive)
-      , (["List", "length"], Recursive)
-      , (["@"], Recursive)
-      , (["rev"], Recursive)
-      , (["List", "rev"], Recursive)
-      , (["List", "tabulate"], Recursive)
-      , (["map"], Recursive)
-      , (["List", "map"], Recursive)
-      , (["List", "mapPartial"], Recursive)
-      , (["List", "filter"], Recursive)
-      , (["foldl"], TailRecursive)
-      , (["List", "foldl"], TailRecursive)
-      , (["foldr"], Recursive)
-      , (["List", "foldr"], Recursive)
-      , (["List", "zip"], Recursive)
+    val init_classifications : ((Ast.path * Ast.region option) * function) list = List.map (fn ((syms, region), cls) => ((to_path syms, region), cls))
+      [ ((["length"], NONE), Recursive)
+      , ((["List", "length"], NONE), Recursive)
+      , ((["@"], NONE), Recursive)
+      , ((["rev"], NONE), Recursive)
+      , ((["List", "rev"], NONE), Recursive)
+      , ((["List", "tabulate"], NONE), Recursive)
+      , ((["map"], NONE), Recursive)
+      , ((["List", "map"], NONE), Recursive)
+      , ((["List", "mapPartial"], NONE), Recursive)
+      , ((["List", "filter"], NONE), Recursive)
+      , ((["foldl"], NONE), TailRecursive)
+      , ((["List", "foldl"], NONE), TailRecursive)
+      , ((["foldr"], NONE), Recursive)
+      , ((["List", "foldr"], NONE), Recursive)
+      , ((["List", "zip"], NONE), Recursive)
       ]
   end
 
@@ -46,8 +47,29 @@ struct
   val is_recursive = fn Recursive => true | f => is_tailrecursive f
   val is_nonrecursive = fn NonRecursive => true | _ => false
 
+  fun listToString f l =
+    let
+      fun helper [] = ""
+        | helper (x::[]) = f x
+        | helper (x::xs) = (f x) ^ ", " ^ (helper xs)
+    in
+      "[" ^ (helper l) ^ "]\n"
+    end
+
+  (* Looks up the given function in the list of already known classifications,
+   * as well as the initial list of classifications *)
+  fun lookupFunctionType (classifications : (((Ast.path * Ast.region option) * function) list)) (function : Ast.path) : (Ast.path * Ast.region option) * function = 
+    let
+      val funAndType = 
+        List.find (fn ((f, _), _) => symbols_eq (function, f)) (classifications @ init_classifications)
+    in
+      case funAndType of
+          SOME x => x
+        | NONE => raise Fail ("Type not yet found" ^ (listToString Symbol.symbolToString function))
+    end
+
   (* Assumes the function is recursive, identifies Recursive or TailRecursive *)
-  fun getRecursiveFunctionType function fnCalls =
+  fun getRecursiveFunctionType function region fnCalls =
     let
       val recursiveCalls =
         List.filter (fn ((symbols, _), _) => symbols_eq (function, symbols)) fnCalls
@@ -58,50 +80,53 @@ struct
         if numRecursiveCalls = numTailRecursiveCalls
         then TailRecursive else Recursive
     in
-      (function, fnType)
+      ((function, region), fnType)
     end
 
-  fun addFunctionType allFns function fb table classifications =
+  fun getFunctionType allFns ((function, region, fb, table), classifications) =
     let
-      val fnCalls = TailRec.find_fb table true fb
-      val callsSelf = List.exists (fn ((symbols, _), _) => symbols_eq (function, symbols)) fnCalls
+      val variables = TailRec.find_fb table true fb
+      (* The tail recursion checker identifies all variables in the ast for the
+       * fb, which includes both functions, and parameters. Now we filter to
+       * only identify types of the functions in allFns, which includes all the
+       * functions defined in the file, and the fns in in init_classifications *)
+      val fnCalls = 
+        List.filter 
+          (fn ((f, r), t) => List.exists (fn (f', r') => symbols_eq (f, f')) allFns) 
+          variables
 
-      val nonSelfCalls = List.filter (fn ((f, _), _) => symbols_neq (function, f)) fnCalls
-      val fnsNonSelfCalls =
-        List.filter (fn (f1, _, _, _) => List.exists (fn ((f2, _), _) => symbols_eq (f1,f2)) nonSelfCalls) allFns
+      val callsSelf = List.exists (fn ((f, _), _) => symbols_eq (function, f)) fnCalls
 
-      val calledFnClassifications = classifyFunctions [] fnsNonSelfCalls
+      val nonSelfCalls : ((Ast.path * Ast.region option) * bool) list = 
+        List.filter (fn ((f, _), _) => symbols_neq (function, f)) fnCalls
+      val calledFnClassifications : ((Ast.path * Ast.region option) * function) list= 
+        List.map (lookupFunctionType classifications) (List.map (fn ((f, r), t) => f) nonSelfCalls)
+
       val recursiveCalls =
-        List.exists (fn (f, t) => t = Recursive orelse t = TailRecursive) calledFnClassifications
+        List.exists (fn (_, t) => (eq (t, Recursive)) orelse (eq (t, TailRecursive))) calledFnClassifications
       val allTailRecursiveCalls =
-        List.all (fn (f, t) => t = TailRecursive orelse t = NonRecursive) calledFnClassifications
+        List.all (fn (_, t) => (eq (t, TailRecursive)) orelse (eq (t, NonRecursive))) calledFnClassifications
     in
       (case (callsSelf, recursiveCalls, allTailRecursiveCalls) of
-          (false, false, _) => (function, NonRecursive)
-        | (_, true, false) => (function, Recursive)
-        | (false, true, true) => (function, TailRecursive)
-        | (true, _, _) => getRecursiveFunctionType function fnCalls
+          (false, false, _) => ((function, region), NonRecursive)
+        | (_, true, false) => ((function, region), Recursive)
+        | (false, true, true) => ((function, region), TailRecursive)
+        | (true, _, _) => getRecursiveFunctionType function region fnCalls
       ) :: (calledFnClassifications @ classifications)
     end
 
-  and getFunctionType allFns ((function, region, fb, table), classifications) =
-    case List.find (fn (f, _) => symbols_eq (function, f)) classifications of
-        SOME (_, t) => classifications (* Function has already been classified *)
-      | NONE => addFunctionType allFns function fb table classifications
-
-  and classifyFunctions classifications fns =
-    List.foldl (getFunctionType fns) classifications fns
+  fun classifyFunctions (allFns : (Ast.path * Ast.region option) list) (fns : (Ast.path * Ast.region option * Ast.fb * FT.table) list) =
+    List.foldl (getFunctionType allFns) [] fns
 
   fun classifyAst dec =
     let
-      val (fns, _) = Functions.find_fns_from_dec FixityTable.basis NONE dec
-      val results = classifyFunctions init_classifications fns
+      val (fnsToClassify : (Ast.path * Ast.region option * Ast.fb * FT.t) list, _) = Functions.find_fns_from_dec FixityTable.basis NONE dec
+      val allFns = 
+        (List.map (fn (p, r, _, _) => (p, r)) fnsToClassify) 
+        @ (List.map (fn (f, _) => f) init_classifications)
+      val results = classifyFunctions allFns fnsToClassify
     in
-      List.filter (fn (f1,t1) =>
-        not (List.exists (fn (f2, t2) => symbols_eq (f1, f2) andalso eq (t1, t2)) init_classifications)
-      ) results
+      results
     end
-
-  val run = classifyAst o Parse.parseFile
 
 end
