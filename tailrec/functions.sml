@@ -5,7 +5,7 @@ struct
 
   fun concatMap f L = List.concat (List.map f L)
 
-  fun regionify region (path, NONE, fb, table) = (path, SOME region, fb, table)
+  fun regionify region (path, (NONE, dec), fb, table) = (path, (SOME region, dec), fb, table)
     | regionify _ function = function
   fun mapfst f (l, t) = (List.map f l, t)
 
@@ -32,15 +32,15 @@ struct
       | AppExp {argument:exp, function:exp} =>
           (find_fns_from_exp fb argument) @ (find_fns_from_exp fb function)
       | CaseExp {expr:exp, rules:rule list} =>
-          (find_fns_from_exp fb expr) @ concatMap (find_fns_from_rule fb) rules
+          (find_fns_from_exp fb expr) @ List.concatMap (find_fns_from_rule fb) rules
       | CharExp s => []
       | ConstraintExp {expr:exp, constraint:ty} => (find_fns_from_exp fb expr)
       | FlatAppExp [] => []
       | FlatAppExp exp_fixitems =>
-          concatMap (fixitem_exp table fb) exp_fixitems
-      | FnExp rules => concatMap (find_fns_from_rule fb) rules
+          List.concatMap (fixitem_exp table fb) exp_fixitems
+      | FnExp rules => List.concatMap (find_fns_from_rule fb) rules
       | HandleExp {expr:exp, rules:rule list} =>
-          (find_fns_from_exp fb expr) @ concatMap (find_fns_from_rule fb) rules
+          (find_fns_from_exp fb expr) @ List.concatMap (find_fns_from_rule fb) rules
       | IfExp {test : exp, thenCase : exp, elseCase : exp} =>
           (find_fns_from_exp fb test)
           @ (find_fns_from_exp fb thenCase) @ (find_fns_from_exp fb elseCase)
@@ -52,21 +52,21 @@ struct
             r @ (find_exp_no_table table' fb expr)
           end
       | ListExp exps =>
-          concatMap (fn x => find_fns_from_exp fb x) exps
+          List.concatMap (fn x => find_fns_from_exp fb x) exps
       | MarkExp (e, region) =>
           List.map (regionify region) (find_fns_from_exp fb e)
       | OrelseExp (e1, e2) => (find_fns_from_exp fb e1) @ (find_fns_from_exp fb e2)
       | RaiseExp e => (find_fns_from_exp fb e)
       | RealExp s => []
       | RecordExp fields =>
-          concatMap (fn (_, exp) => find_fns_from_exp fb exp) fields
+          List.concatMap (fn (_, exp) => find_fns_from_exp fb exp) fields
       | SelectorExp sym => []
       | SeqExp [] => []
-      | SeqExp exps => concatMap (find_fns_from_exp fb) exps
+      | SeqExp exps => List.concatMap (find_fns_from_exp fb) exps
       | StringExp s => []
-      | TupleExp exps => concatMap (find_fns_from_exp fb) exps
+      | TupleExp exps => List.concatMap (find_fns_from_exp fb) exps
       | VarExp path => [] (* [(path, NONE)] *)
-      | VectorExp exps => concatMap (find_fns_from_exp fb) exps
+      | VectorExp exps => List.concatMap (find_fns_from_exp fb) exps
       | WhileExp {test:exp, expr:exp} => raise Fail "todo maybe?"
       | WordExp i => []
     end
@@ -83,7 +83,7 @@ struct
       | FixDec {fixity : fixity, ops : symbol list} =>
           ([], FT.insertAll table fixity ops)
       | FsigDec fsigs => ([], table)
-      | FunDec (fbs, tys) => (concatMap (find_fns_from_fb table) fbs, table)
+      | FunDec (fbs, tys) => (List.concatMap (find_fns_from_fb table (SOME dec)) fbs, table)
       | LocalDec (d1, d2) =>
           let
             val (r1, t1) = find_fns_from_dec table fb d1
@@ -111,47 +111,47 @@ struct
       | SigDec sigs => ([], table)
       | StrDec strbs => ([], table)
       | TypeDec tb => ([], table)
-      | ValDec (vbs, tys) => (concatMap (find_fns_from_vb table fb) vbs, table)
-      | ValrecDec (rvbs, tys) => (concatMap (find_fns_from_rvb table fb) rvbs, table)
+      | ValDec (vbs, tys) => (List.concatMap (find_fns_from_vb table fb) vbs, table)
+      | ValrecDec (rvbs, tys) => (List.concatMap (find_fns_from_rvb table fb) rvbs, table)
 
   and find_fns_from_rule table fb (Rule {exp, pat}) = find_fns_from_exp table fb exp
 
-  and find_fns_from_fb table fb =
+  and find_fns_from_fb table dec fb =
     case fb of
-      MarkFb (fb', region) => List.map (regionify region) (find_fns_from_fb table fb')
+      MarkFb (fb', region) => List.map (regionify region) (find_fns_from_fb table dec fb')
       (* Every clause is from the same function, so we just need to get the function from the first clause *)
-    | Fb (clauses, b) => find_fns_from_clause table fb (List.hd clauses)
+    | Fb (clauses, b) => find_fns_from_clause table dec fb (List.hd clauses)
 
-  and find_fns_from_clause table (fb : fb) (Clause {exp, pats, resultty}) =
+  and find_fns_from_clause table dec (fb : fb) (Clause {exp, pats, resultty}) =
     let
       val name = getFunName table pats
     in
-      (find_fns_from_exp table (SOME fb) exp) @ (fixitem_pat table fb name)
+      (find_fns_from_exp table (SOME fb) exp) @ (fixitem_pat table dec fb name)
     end
 
-  and find_fns_from_pat table fb pat =
+  and find_fns_from_pat table dec fb pat =
     let
-      val find_fns_from_pat = find_fns_from_pat table
+      val find_fns_from_pat = find_fns_from_pat table dec
     in
       case pat of
         AppPat {argument, constr} =>
           (find_fns_from_pat fb argument) @ (find_fns_from_pat fb constr)
       | CharPat s => []
       | ConstraintPat {constraint, pattern} => find_fns_from_pat fb pattern
-      | FlatAppPat pats => concatMap (fixitem_pat table fb) pats
+      | FlatAppPat pats => List.concatMap (fixitem_pat table dec fb) pats
       | IntPat x => []
       | LayeredPat {expPat, varPat} =>
           (find_fns_from_pat fb expPat) @ (find_fns_from_pat fb varPat)
-      | ListPat pats => concatMap (find_fns_from_pat fb) pats
+      | ListPat pats => List.concatMap (find_fns_from_pat fb) pats
       | MarkPat (pat', region) =>
           List.map (regionify region) (find_fns_from_pat fb pat')
-      | OrPat pats => concatMap (find_fns_from_pat fb) pats
+      | OrPat pats => List.concatMap (find_fns_from_pat fb) pats
       | RecordPat {def, flexibility} =>
-          concatMap (fn (symbol, pat) => find_fns_from_pat fb pat) def
+          List.concatMap (fn (symbol, pat) => find_fns_from_pat fb pat) def
       | StringPat s => []
-      | TuplePat pats => concatMap (find_fns_from_pat fb) pats
-      | VarPat path => [(path, NONE, fb, table)]
-      | VectorPat pats => concatMap (find_fns_from_pat fb) pats
+      | TuplePat pats => List.concatMap (find_fns_from_pat fb) pats
+      | VarPat path => [(path, (NONE, dec), fb, table)]
+      | VectorPat pats => List.concatMap (find_fns_from_pat fb) pats
       | WildPat => []
       | WordPat x => []
     end
@@ -169,7 +169,7 @@ struct
   and fixitem_exp table fb {fixity, item, region} =
     List.map (regionify region) (find_fns_from_exp table fb item)
 
-  and fixitem_pat table fb {fixity, item, region} =
-    List.map (regionify region) (find_fns_from_pat table fb item)
+  and fixitem_pat table dec fb {fixity, item, region} =
+    List.map (regionify region) (find_fns_from_pat table dec fb item)
 
 end
