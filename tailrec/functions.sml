@@ -28,11 +28,14 @@ struct
     in
       case exp of
         AndalsoExp (e1, e2) =>
-          (find_fns_from_exp out e1) @ (find_fns_from_exp out e2)
+          (find_fns_from_exp out e1)
+          @ (find_fns_from_exp out e2)
       | AppExp {argument:exp, function:exp} =>
-          (find_fns_from_exp out argument) @ (find_fns_from_exp out function)
+          (find_fns_from_exp out argument)
+          @ (find_fns_from_exp out function)
       | CaseExp {expr:exp, rules:rule list} =>
-          (find_fns_from_exp out expr) @ List.concatMap (find_fns_from_rule out) rules
+          (find_fns_from_exp out expr)
+          @ List.concatMap (find_fns_from_rule out) rules
       | CharExp s => []
       | ConstraintExp {expr:exp, constraint:ty} => (find_fns_from_exp out expr)
       | FlatAppExp [] => []
@@ -40,10 +43,12 @@ struct
           List.concatMap (fixitem_exp table out) exp_fixitems
       | FnExp rules => List.concatMap (find_fns_from_rule out) rules
       | HandleExp {expr:exp, rules:rule list} =>
-          (find_fns_from_exp out expr) @ List.concatMap (find_fns_from_rule out) rules
+          (find_fns_from_exp out expr)
+          @ List.concatMap (find_fns_from_rule out) rules
       | IfExp {test : exp, thenCase : exp, elseCase : exp} =>
           (find_fns_from_exp out test)
-          @ (find_fns_from_exp out thenCase) @ (find_fns_from_exp out elseCase)
+          @ (find_fns_from_exp out thenCase)
+          @ (find_fns_from_exp out elseCase)
       | IntExp i => []
       | LetExp {dec:dec, expr:exp} =>
           let
@@ -55,7 +60,9 @@ struct
           List.concatMap (fn x => find_fns_from_exp out x) exps
       | MarkExp (e, region) =>
           List.map (regionify region) (find_fns_from_exp out e)
-      | OrelseExp (e1, e2) => (find_fns_from_exp out e1) @ (find_fns_from_exp out e2)
+      | OrelseExp (e1, e2) =>
+          (find_fns_from_exp out e1)
+          @ (find_fns_from_exp out e2)
       | RaiseExp e => (find_fns_from_exp out e)
       | RealExp s => []
       | RecordExp fields =>
@@ -138,13 +145,15 @@ struct
     in
       case pat of
         AppPat {argument, constr} =>
-          (find_fns_from_pat out argument) @ (find_fns_from_pat out constr)
+          (find_fns_from_pat out argument)
+          @ (find_fns_from_pat out constr)
       | CharPat s => []
       | ConstraintPat {constraint, pattern} => find_fns_from_pat out pattern
       | FlatAppPat pats => List.concatMap (fixitem_pat table dec out) pats
       | IntPat x => []
       | LayeredPat {expPat, varPat} =>
-          (find_fns_from_pat out expPat) @ (find_fns_from_pat out varPat)
+          (find_fns_from_pat out expPat)
+          @ (find_fns_from_pat out varPat)
       | ListPat pats => List.concatMap (find_fns_from_pat out) pats
       | MarkPat (pat', region) =>
           List.map (regionify region) (find_fns_from_pat out pat')

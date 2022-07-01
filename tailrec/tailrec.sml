@@ -45,9 +45,9 @@ struct
       | IntExp i => []
       | LetExp {dec:dec, expr:exp} =>
           let
-            val (r, table') = find_dec table false dec
+            val (_, table') = find_dec table false dec
           in
-            r @ (find_exp table' tail expr)
+            find_exp table' tail expr
           end
       | ListExp exps => List.concatMap (find_exp table false) exps
       | MarkExp (e, region) =>

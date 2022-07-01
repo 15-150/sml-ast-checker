@@ -39,23 +39,8 @@ fun test5 y =
 
 fun test6 x =
   let
-    fun inner_fact 0 = 1
-      | inner_fact n = n * inner_fact (n - 1)
-    val fact5 = inner_fact 5
+    fun inner_fact_cps 0 k = k 1
+      | inner_fact_cps n k = inner_fact_cps (n - 1) (fn res => k (res * n))
   in
-    fact5
-  end
-
-fun test7 x =
-  let
-    val zero = 0
-  in
-    zero
-  end
-
-fun test8 x =
-  let
-    fun zero y = 0
-  in
-    zero
+    test6 (inner_fact_cps x SOME)
   end
