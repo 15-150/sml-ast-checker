@@ -1,13 +1,5 @@
-(* Only use this for if you want to print/test things *)
-Group
-  structure AstTraverse
-  structure Parse
-  structure Lint
 
-  structure TailRec
-  structure Functions
-  structure FunctionClassification
-  structure FixityTable
+Group
 is
   $SMLNJ-BASIS/basis.cm
   $smlnj/compiler/current.cm
