@@ -18,9 +18,10 @@ is
 
   io-util/simple-print.sml
 
+  tailrec/fixity-table.sig
+  tailrec/fixity-table.sml
   tailrec/tailrec.sig
   tailrec/tailrec.sml
   tailrec/functions.sml
-  tailrec/fun-classification.sml
-  tailrec/fixity-table.sig
-  tailrec/fixity-table.sml
+  tailrec/classification.sml
+  tailrec/classify.sml

@@ -17,3 +17,5 @@ fun treefind p t sc fc =
     if p x
     then sc x
     else treefind p l sc (fn () => treefind p r sc fc)
+
+fun sapling x = Node (Empty, x, Empty)
