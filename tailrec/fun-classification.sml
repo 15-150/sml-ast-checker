@@ -106,11 +106,16 @@ struct
       ((function, dec_info), fnType)
     end
 
-  fun getFunctionType allFns ((function, dec_info, fb, table), classifications) =
+  fun getTailRec table =
+    fn Functions.OutFb fb => TailRec.find_fb table true fb
+     | Functions.OutVb vb => TailRec.find_vb table true vb
+     | Functions.OutRvb rvb => TailRec.find_rvb table true rvb
+
+  fun getFunctionType allFns ((function, dec_info, out, table), classifications) =
     let
-      val variables = TailRec.find_fb table true fb
+      val variables = getTailRec table out
       (* The tail recursion checker identifies all variables in the ast for the
-       * fb, which includes both functions, and parameters. Now we filter to
+       * out, which includes both functions, and parameters. Now we filter to
        * only identify types of the functions in allFns, which includes all the
        * functions defined in the file, and the fns in in init_classifications *)
       val fnCalls = (List.map (fn ((f, r), t) => ((f, (r, NONE)), t)) o List.filter
@@ -137,12 +142,13 @@ struct
       ) :: classifications
     end
 
-  fun classifyFunctions (allFns : (Ast.path * dec_info) list) (fns : (Ast.path * dec_info * Ast.fb * FT.table) list) =
+  fun classifyFunctions (allFns : (Ast.path * dec_info) list)
+                        (fns : (Ast.path * dec_info * Functions.output * FT.table) list) =
     List.foldl (getFunctionType allFns) [] fns
 
   fun classifyAst dec =
     let
-      val (fnsToClassify : (Ast.path * dec_info * Ast.fb * FT.t) list, _) =
+      val (fnsToClassify : (Ast.path * dec_info * Functions.output * FT.t) list, _) =
         Functions.find_fns_from_dec FixityTable.basis NONE dec
       val allFns =
         (List.map (fn (p, r, _, _) => (p, r)) fnsToClassify)

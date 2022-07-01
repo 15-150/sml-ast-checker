@@ -4,7 +4,7 @@ fun test1 x =
     fun inner_fact 0 = 1
       | inner_fact n = n * inner_fact (n - 1)
   in
-    fact x
+    inner_fact x
   end
 
 fun test2 x =
@@ -30,9 +30,32 @@ fun test4 x =
     test4 (id x)
   end
 
-fun test5 x =
+fun test5 y =
   let
     fun loop x = loop x
   in
-    x
+    y
+  end
+
+fun test6 x =
+  let
+    fun inner_fact 0 = 1
+      | inner_fact n = n * inner_fact (n - 1)
+    val fact5 = inner_fact 5
+  in
+    fact5
+  end
+
+fun test7 x =
+  let
+    val zero = 0
+  in
+    zero
+  end
+
+fun test8 x =
+  let
+    fun zero y = 0
+  in
+    zero
   end
