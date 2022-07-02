@@ -16,7 +16,7 @@ functor MkClassifier (
   (* Looks up the given function in the list of already known classifications,
    * as well as the initial list of classifications *)
   fun lookupFunctionType (classifications : (((Ast.path * dec_info) * classification) list))
-                         (function : Ast.path)
+                         (function : Ast.path, dec_info : dec_info)
                        : (Ast.path * dec_info) * classification =
     let
       val funAndType =
@@ -24,7 +24,7 @@ functor MkClassifier (
     in
       case funAndType of
           SOME x => x
-        | NONE => raise Fail ("Type not yet found " ^ (listToString Symbol.name function))
+        | NONE => ((function, dec_info), Unknown [])
     end
 
   (* Assumes the function is recursive, identifies Recursive or TailRecursive *)
@@ -47,6 +47,11 @@ functor MkClassifier (
      | Functions.OutVb vb   => TailRec.find_vb table true vb
      | Functions.OutRvb rvb => TailRec.find_rvb table true rvb
 
+  val isRecDec =
+    fn Functions.OutFb _  => true
+     | Functions.OutVb _  => false
+     | Functions.OutRvb _ => true
+
   fun getFunctionType allFns ((function, dec_info, out, table), classifications) =
     let
       val variables = getTailRec table out
@@ -58,12 +63,13 @@ functor MkClassifier (
           (fn ((f, r), t) => List.exists (fn (f', _) => symbols_eq (f, f')) allFns))
           variables
 
-      val callsSelf = List.exists (fn ((f, _), _) => symbols_eq (function, f)) fnCalls
+      val callsSelf =
+        isRecDec out andalso List.exists (fn ((f, _), _) => symbols_eq (function, f)) fnCalls
 
       val nonSelfCalls : ((Ast.path * dec_info) * bool) list =
         List.filter (fn ((f, _), _) => symbols_neq (function, f)) fnCalls
       val calledFnClassifications : ((Ast.path * dec_info) * classification) list=
-        List.map (lookupFunctionType classifications) (List.map (fn ((f, r), t) => f) nonSelfCalls)
+        List.map (lookupFunctionType classifications) (List.map (fn ((f, r), t) => (f, r)) nonSelfCalls)
 
       val recursiveCalls =
         List.exists (fn (_, t) => is_recursive t) calledFnClassifications

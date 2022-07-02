@@ -44,3 +44,10 @@ fun test6 x =
   in
     test6 (inner_fact_cps x SOME)
   end
+
+fun test7 x =
+  let
+    fun id x = x
+  in
+    id (test7 x)
+  end

@@ -35,3 +35,10 @@ fun test6 x =
   in
     test6 (fact6)
   end
+
+fun test7 (a,b) =
+  let
+    val (a,b) = (a,b)
+  in
+    (a,b)
+  end
