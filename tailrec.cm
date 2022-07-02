@@ -1,5 +1,8 @@
-
-Group
+Library
+  signature CLASSIFICATION
+  structure Classification
+  functor MkClassifier
+  structure BasicClassifier
 is
   $SMLNJ-BASIS/basis.cm
   $smlnj/compiler/current.cm
@@ -11,12 +14,7 @@ is
 
   compat/sources.cm
 
-  ast-util/ast-traverse.sig
-  ast-util/ast-traverse.sml
-  ast-util/parse.sig
-  ast-util/parse.sml
-
-  io-util/simple-print.sml
+  common.cm
 
   tailrec/fixity-table.sig
   tailrec/fixity-table.sml
