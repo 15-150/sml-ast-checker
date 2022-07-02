@@ -1,9 +1,8 @@
-structure Classify =
-struct
+functor MkClassifier (
+  include CLASSIFICATION
+) = struct
 
   structure FT = FixityTable
-
-  open Classification
 
   fun listToString f l =
     let
@@ -94,7 +93,5 @@ struct
     in
       List.rev results
     end
-
-  val simpleClassifyAst = List.map (fn ((p, _), c) => (p, c)) o classifyAst
 
 end
