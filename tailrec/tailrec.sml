@@ -5,20 +5,23 @@ struct
   open Ast
 
   type var = path * region option
-  type function = var * bool
+  type call = var * bool
 
   fun regionify region ((path, NONE), tail) = ((path, SOME region), tail)
-    | regionify _ function = function
+    | regionify _ call = call
   fun mapfst f (l, t) = (List.map f l, t)
 
   fun find_exp table tail exp =
     case exp of
         AndalsoExp (e1, e2) =>
-          (find_exp table false e1) @ (find_exp table false e2)
+          (find_exp table false e1)
+          @ (find_exp table false e2)
       | AppExp {argument:exp, function:exp} =>
-          (find_exp table false argument) @ (find_exp table tail function)
+          (find_exp table false argument)
+          @ (find_exp table tail function)
       | CaseExp {expr:exp, rules:rule list} =>
-          (find_exp table false expr) @ List.concatMap (find_rule table tail) rules
+          (find_exp table false expr)
+          @ List.concatMap (find_rule table tail) rules
       | CharExp s => []
       | ConstraintExp {expr:exp, constraint:ty} => (find_exp table tail expr)
       | FlatAppExp [] => []
@@ -37,7 +40,8 @@ struct
           end
       | FnExp rules => List.concatMap (find_rule table true) rules
       | HandleExp {expr:exp, rules:rule list} =>
-          (find_exp table false expr) @ List.concatMap (find_rule table tail) rules
+          (find_exp table false expr)
+          @ List.concatMap (find_rule table tail) rules
       | IfExp {test : exp, thenCase : exp, elseCase : exp} =>
           (find_exp table false test)
           @ (find_exp table tail thenCase)
@@ -53,7 +57,8 @@ struct
       | MarkExp (e, region) =>
           List.map (regionify region) (find_exp table tail e)
       | OrelseExp (e1, e2) =>
-          (find_exp table false e1) @ (find_exp table false e2)
+          (find_exp table false e1)
+          @ (find_exp table false e2)
       | RaiseExp e => (find_exp table false e)
       | RealExp s => []
       | RecordExp fields =>
@@ -62,7 +67,7 @@ struct
       | SeqExp [] => []
       | SeqExp exps =>
           find_exp table tail (List.last exps)
-        @ List.concatMap (find_exp table false) (List.take (exps, List.length exps - 1))
+          @ List.concatMap (find_exp table false) (List.take (exps, List.length exps - 1))
       | StringExp s => []
       | TupleExp exps =>
           List.concatMap (find_exp table false) exps
@@ -70,12 +75,14 @@ struct
       | VectorExp exps =>
           List.concatMap (find_exp table false) exps
       | WhileExp {test:exp, expr:exp} =>
-          find_exp table false test @ find_exp table false expr
+          find_exp table false test
+          @ find_exp table false expr
       | WordExp i => []
 
   and find_dec table tail dec =
     case dec of
-        AbstypeDec {abstycs : db list, body : dec, withtycs : tb list} => raise Fail "todo maybe?"
+        AbstypeDec {abstycs : db list, body : dec, withtycs : tb list} =>
+          raise Fail "todo maybe?"
       | DataReplDec (sym, path) => ([], table)
       | DatatypeDec {datatycs : db list, withtycs : tb list} => ([], table)
       | DoDec exp => (find_exp table tail exp, table) (* Successor ML extension *)
@@ -97,7 +104,8 @@ struct
           in
             (r1 @ r2, t2)
           end
-      | MarkDec (d', region) => mapfst (regionify region) (find_dec table tail d')
+      | MarkDec (d', region) =>
+          mapfst (regionify region) (find_dec table tail d')
       | OpenDec paths => ([], table)
       | OvldDec x => raise Fail "idk what this is"
       | SeqDec decs =>
@@ -116,8 +124,10 @@ struct
       | SigDec sigs => ([], table)
       | StrDec strbs => ([], table)
       | TypeDec tb => ([], table)
-      | ValDec (vbs, tys) => (List.concatMap (find_vb table tail) vbs, table)
-      | ValrecDec (rvbs, tys) => (List.concatMap (find_rvb table tail) rvbs, table)
+      | ValDec (vbs, tys) =>
+          (List.concatMap (find_vb table tail) vbs, table)
+      | ValrecDec (rvbs, tys) =>
+          (List.concatMap (find_rvb table tail) rvbs, table)
   and find_fb table tail fb =
     case fb of
       MarkFb (fb, region) => List.map (regionify region) (find_fb table tail fb)
@@ -128,11 +138,13 @@ struct
     | Vb {exp,lazyp,pat} => find_exp table tail exp
   and find_rvb table tail rvb =
     case rvb of
-      MarkRvb (rvb, region) => List.map (regionify region) (find_rvb table tail rvb)
+      MarkRvb (rvb, region) =>
+          List.map (regionify region) (find_rvb table tail rvb)
     | Rvb {exp,fixity,lazyp,resultty, var} => find_exp table tail exp
-  and find_clause table tail (Clause {exp, pats, resultty}) = find_exp table tail exp
-  and find_rule table tail (Rule {exp, pat}) = find_exp table tail exp
+  and find_clause table tail (Clause {exp, pats, resultty}) =
+    find_exp table tail exp
+  and find_rule table tail (Rule {exp, pat}) =
+    find_exp table tail exp
   and fixitem table tail {fixity, item, region} =
     List.map (regionify region) (find_exp table tail item)
-
 end
