@@ -86,7 +86,8 @@ struct
       | DatatypeDec {datatycs : db list, withtycs : tb list} => ([], table)
       | DoDec exp => (find_fns_from_exp table out exp, table) (* Successor ML extension *)
       | ExceptionDec ebs => ([], table)
-      | FctDec fctb => ([], table) (* not legal *)
+      | FctDec fctbs =>
+          (List.concatMap (find_fns_from_fctb table out) fctbs, table)
       | FixDec {fixity : fixity, ops : symbol list} =>
           ([], FT.insertAll table fixity ops)
       | FsigDec fsigs => ([], table)
@@ -117,7 +118,8 @@ struct
             end
           ) ([], table) decs
       | SigDec sigs => ([], table)
-      | StrDec strbs => ([], table)
+      | StrDec strbs =>
+          (List.concatMap (find_fns_from_strb table out) strbs, table)
       | TypeDec tb => ([], table)
       | ValDec (vbs, tys) =>
           (List.concatMap (find_fns_from_vb table (SOME dec)) vbs, table)
@@ -189,5 +191,55 @@ struct
 
   and fixitem_pat table dec out {fixity, item, region} =
     List.map (regionify region) (find_fns_from_pat table dec out item)
+
+  and find_fns_from_strb table out strb =
+    case strb of
+        MarkStrb (strb', region) =>
+          List.map (regionify region) (find_fns_from_strb table out strb')
+      | Strb {constraint, def, name} => find_fns_from_strexp table out def
+  and find_fns_from_strexp table out strexp =
+    case strexp of
+        AppStr (path, strexps) =>
+          List.concatMap (fn (s, _) => find_fns_from_strexp table out s) strexps
+      | AppStrI (path, strexps) =>
+          List.concatMap (fn (s, _) => find_fns_from_strexp table out s) strexps
+      | BaseStr dec =>
+          let
+            (* maybe change this *)
+            val (r, _) = find_fns_from_dec table out dec
+          in
+            r
+          end
+      | ConstrainedStr (strexp', _) => find_fns_from_strexp table out strexp'
+      | LetStr (dec, strexp') =>
+          let
+            val (r, table') = find_fns_from_dec table out dec
+          in
+            r @ find_fns_from_strexp table' out strexp'
+          end
+      | MarkStr (strexp', region) =>
+          List.map (regionify region) (find_fns_from_strexp table out strexp')
+      | VarStr path => []
+
+  and find_fns_from_fctb table out fctb =
+    case fctb of
+        MarkFctb (fctb', region) =>
+          List.map (regionify region) (find_fns_from_fctb table out fctb')
+      | Fctb {def, name} => find_fns_from_fctexp table out def
+  and find_fns_from_fctexp table out fctexp =
+    case fctexp of
+        AppFct (_, strexps, _) =>
+          List.concatMap (fn (s, _) => find_fns_from_strexp table out s) strexps
+      | BaseFct {body, constraint, params} =>
+          find_fns_from_strexp table out body
+      | LetFct (dec, fctexp') =>
+          let
+            val (r, table') = find_fns_from_dec table out dec
+          in
+            r @ find_fns_from_fctexp table' out fctexp'
+          end
+      | MarkFct (fctexp', region) =>
+          List.map (regionify region) (find_fns_from_fctexp table out fctexp')
+      | VarFct (path, _) => []
 
 end
