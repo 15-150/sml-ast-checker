@@ -23,5 +23,6 @@ is
   tailrec/tailrec.sig
   tailrec/tailrec.sml
   tailrec/functions.sml
+  tailrec/classification.sig
   tailrec/classification.sml
   tailrec/classify.sml
