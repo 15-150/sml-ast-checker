@@ -94,4 +94,6 @@ functor MkClassifier (
       List.rev results
     end
 
+  val simpleClassifyAst = List.map (fn ((p, _), c) => (p, c)) o classifyAst
+
 end

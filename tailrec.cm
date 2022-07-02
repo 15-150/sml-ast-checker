@@ -26,3 +26,4 @@ is
   tailrec/classification.sig
   tailrec/classification.sml
   tailrec/classifier.fun
+  main/basic-classifier.sml
