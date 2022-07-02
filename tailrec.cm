@@ -25,4 +25,4 @@ is
   tailrec/functions.sml
   tailrec/classification.sig
   tailrec/classification.sml
-  tailrec/classify.sml
+  tailrec/classifier.fun
