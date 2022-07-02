@@ -82,17 +82,20 @@ functor MkClassifier (
                         (fns : (Ast.path * dec_info * Functions.output * FT.table) list) =
     List.foldl (getFunctionType allFns) [] fns
 
-  fun classifyAst dec =
+
+  fun classifyAstWith classifications dec =
     let
       val (fnsToClassify : (Ast.path * dec_info * Functions.output * FT.t) list, _) =
         Functions.find_fns_from_dec FixityTable.basis NONE dec
       val allFns =
         (List.map (fn (p, r, _, _) => (p, r)) fnsToClassify)
-        @ (List.map (fn (f, _) => f) init_classifications)
+        @ (List.map (fn (f, _) => f) (List.rev classifications))
       val results = classifyFunctions allFns fnsToClassify
     in
       List.rev results
     end
+
+  val classifyAst = classifyAstWith init_classifications
 
   val simpleClassifyAst = List.map (fn ((p, _), c) => (p, c)) o classifyAst
 
