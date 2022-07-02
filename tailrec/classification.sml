@@ -1,13 +1,14 @@
-structure Classification =
+structure Classification : CLASSIFICATION =
 struct
-  datatype t
+  datatype classification
     = Unknown of Symbol.symbol list
     | NonRecursive
     | Recursive
     | TailRecursive
-  type classification = t
+  type t = classification
 
   type dec_info = Ast.region option * Ast.dec option
+  type classifications = ((Ast.path * dec_info) * classification) list
 
   local
     val to_path = List.rev o List.mapi (
@@ -15,7 +16,7 @@ struct
          | (_, sym) => Symbol.strSymbol sym) o List.rev
   in
   (* Basing these off of how we teach them, not their NJ implementation *)
-    val init_classifications : ((Ast.path * dec_info) * classification) list =
+    val init_classifications : classifications =
       List.map (fn (syms, cls) => ((to_path syms, (NONE, NONE)), cls))
         [ (["length"], Recursive)
         , (["List", "length"], Recursive)
