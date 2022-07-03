@@ -1,4 +1,6 @@
 Library
+  structure FixityTable
+  structure TailRec
   signature CLASSIFICATION
   structure Classification
   functor MkClassifier
