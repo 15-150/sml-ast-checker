@@ -31,10 +31,10 @@ functor MkClassifier (
   fun getRecursiveFunctionType function dec_info fnCalls =
     let
       val recursiveCalls =
-        List.filter (fn ((symbols, _), _) => symbols_eq (function, symbols)) fnCalls
+        List.filter (fn ((symbols, _), _, _) => symbols_eq (function, symbols)) fnCalls
       val numRecursiveCalls = List.length recursiveCalls
       val numTailRecursiveCalls =
-        List.length (List.filter (fn ((_, _), tailRec) => tailRec) recursiveCalls)
+        List.length (List.filter (fn ((_, _), tailRec, _) => tailRec) recursiveCalls)
       val fnType =
         if numRecursiveCalls = numTailRecursiveCalls
         then TailRecursive else Recursive
@@ -43,9 +43,9 @@ functor MkClassifier (
     end
 
   fun getTailRec table =
-    fn Functions.OutFb fb   => TailRec.find_fb table true fb
-     | Functions.OutVb vb   => TailRec.find_vb table true vb
-     | Functions.OutRvb rvb => TailRec.find_rvb table true rvb
+    fn Functions.OutFb fb   => TailRec.find_fb table [] true fb
+     | Functions.OutVb vb   => TailRec.find_vb table [] true vb
+     | Functions.OutRvb rvb => TailRec.find_rvb table [] true rvb
 
   val isRecDec =
     fn Functions.OutFb _  => true
@@ -54,22 +54,25 @@ functor MkClassifier (
 
   fun getFunctionType allFns ((function, dec_info, out, table), classifications) =
     let
-      val variables = getTailRec table out
+      val variables : TailRec.call list = getTailRec table out
       (* The tail recursion checker identifies all variables in the ast for the
        * out, which includes both functions, and parameters. Now we filter to
        * only identify types of the functions in allFns, which includes all the
        * functions defined in the file, and the fns in in init_classifications *)
-      val fnCalls = (List.map (fn ((f, r), t) => ((f, (r, NONE)), t)) o List.filter
-          (fn ((f, r), t) => List.exists (fn (f', _) => symbols_eq (f, f')) allFns))
-          variables
+      val fnCalls : ((Ast.path * dec_info) * bool * bool) list =
+        (List.map (fn ((f, r), t, b) => ((f, (r, NONE)), t, b)) o List.filter
+        (fn ((f, r), t, b) => List.exists (fn (f', _) => symbols_eq (f, f')) allFns))
+        variables
+
+      val fnCallsNonBound = List.filter (fn ((f, r), t, b) => not b) fnCalls
 
       val callsSelf =
-        isRecDec out andalso List.exists (fn ((f, _), _) => symbols_eq (function, f)) fnCalls
+        isRecDec out andalso List.exists (fn ((f, _), _, _) => symbols_eq (function, f)) fnCallsNonBound
 
-      val nonSelfCalls : ((Ast.path * dec_info) * bool) list =
-        List.filter (fn ((f, _), _) => symbols_neq (function, f)) fnCalls
+      val nonSelfCalls : ((Ast.path * dec_info) * bool * bool) list =
+        List.filter (fn ((f, _), _, _) => symbols_neq (function, f)) fnCallsNonBound
       val calledFnClassifications : ((Ast.path * dec_info) * classification) list=
-        List.map (lookupFunctionType classifications) (List.map (fn ((f, r), t) => (f, r)) nonSelfCalls)
+        List.map (lookupFunctionType classifications) (List.map (fn ((f, r), t, b) => (f, r)) nonSelfCalls)
 
       val recursiveCalls =
         List.exists (fn (_, t) => is_recursive t) calledFnClassifications
@@ -80,7 +83,7 @@ functor MkClassifier (
           (false, false, _) => ((function, dec_info), NonRecursive)
         | (_, true, false) => ((function, dec_info), Recursive)
         | (false, true, true) => ((function, dec_info), TailRecursive)
-        | (true, _, _) => getRecursiveFunctionType function dec_info fnCalls
+        | (true, _, _) => getRecursiveFunctionType function dec_info fnCallsNonBound
       ) :: classifications
     end
 

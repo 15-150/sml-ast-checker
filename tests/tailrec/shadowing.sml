@@ -38,3 +38,8 @@ fun fact6 x =
   in
     innerFact (fn x => x) x
   end
+
+(* Shadowing with bound variables *)
+fun f xs = List.length xs
+fun fold1 f xs = List.foldl f 0 xs
+fun useFold1 xs = fold1 f xs
