@@ -6,14 +6,14 @@ functor MkClassifier (
 
   type classifications = ((Ast.path * dec_info) * classification) list
 
-  datatype ('a,'b) result =
-      Full of 'a
-    | Susp of 'a * ('b -> ('a,'b) result)
+  datatype ('out,'pause,'start) result =
+      Full of 'out
+    | Susp of 'out * 'pause * ('start -> ('out,'pause,'start) result)
 
   fun resapp f =
    fn Full classifications         => Full (f classifications)
-    | Susp (classifications, cont) =>
-        Susp (f classifications, fn x => resapp f (cont x))
+    | Susp (classifications, pause, cont) =>
+        Susp (f classifications, pause, fn x => resapp f (cont x))
   fun resrev res = resapp List.rev res
 
   fun listToString f l =
@@ -109,7 +109,7 @@ functor MkClassifier (
           [] => Full acc
         | (f as (name,dec_info,output,table))::fns' =>
             if susp (name, dec_info)
-            then Susp (acc, fn acc => folder g (g (f, acc)) fns')
+            then Susp (acc, (name,dec_info), fn acc' => folder g (g (f, acc')) fns')
             else folder g (g (f, acc)) fns'
     in
       folder (getFunctionType allFns) [] fns
