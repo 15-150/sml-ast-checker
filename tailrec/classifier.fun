@@ -4,6 +4,18 @@ functor MkClassifier (
 
   structure FT = FixityTable
 
+  type classifications = ((Ast.path * dec_info) * classification) list
+
+  datatype ('a,'b) result =
+      Full of 'a
+    | Susp of 'a * ('b -> ('a,'b) result)
+
+  fun resapp f =
+   fn Full classifications         => Full (f classifications)
+    | Susp (classifications, cont) =>
+        Susp (f classifications, fn x => resapp f (cont x))
+  fun resrev res = resapp List.rev res
+
   fun listToString f l =
     let
       fun helper [] = ""
@@ -87,25 +99,37 @@ functor MkClassifier (
       ) :: classifications
     end
 
-  fun classifyFunctions (allFns : (Ast.path * dec_info) list)
-                        (fns : (Ast.path * dec_info * Functions.output * FT.table) list) =
-    List.foldl (getFunctionType allFns) [] fns
+  fun classifyFunctions
+        (susp : Ast.path * dec_info -> bool)
+        (allFns : (Ast.path * dec_info) list)
+        (fns : (Ast.path * dec_info * Functions.output * FT.table) list) =
+    let
+      fun folder g acc fns =
+        case fns of
+          [] => Full acc
+        | (f as (name,dec_info,output,table))::fns' =>
+            if susp (name, dec_info)
+            then Susp (acc, fn acc => folder g (g (f, acc)) fns')
+            else folder g (g (f, acc)) fns'
+    in
+      folder (getFunctionType allFns) [] fns
+    end
 
-
-  fun classifyAstWith classifications dec =
+  fun classifyAstWith classifications suspender dec =
     let
       val (fnsToClassify : (Ast.path * dec_info * Functions.output * FT.t) list, _) =
         Functions.find_fns_from_dec FixityTable.basis NONE dec
       val allFns =
         (List.map (fn (p, r, _, _) => (p, r)) fnsToClassify)
         @ (List.map (fn (f, _) => f) (List.rev classifications))
-      val results = classifyFunctions allFns fnsToClassify
+      val results = classifyFunctions suspender allFns fnsToClassify
     in
-      List.rev results
+      resrev results
     end
 
-  val classifyAst = classifyAstWith init_classifications
+  val classifyAst = classifyAstWith init_classifications (fn _ => false)
 
-  val simpleClassifyAst = List.map (fn ((p, _), c) => (p, c)) o classifyAst
+  val simpleClassifyAst =
+    resapp (List.map (fn ((p, _), c) => (p, c))) o classifyAst
 
 end
