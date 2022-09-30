@@ -4,8 +4,6 @@ functor MkClassifier (
 
   structure FT = FixityTable
 
-  type classifications = ((Ast.path * dec_info) * classification) list
-
   datatype ('out,'pause,'start) result =
       Full of 'out
     | Susp of 'out * 'pause * ('start -> ('out,'pause,'start) result)
@@ -15,15 +13,6 @@ functor MkClassifier (
     | Susp (classifications, pause, cont) =>
         Susp (f classifications, pause, fn x => resapp f (cont x))
   fun resrev res = resapp List.rev res
-
-  fun listToString f l =
-    let
-      fun helper [] = ""
-        | helper (x::[]) = f x
-        | helper (x::xs) = (f x) ^ ", " ^ (helper xs)
-    in
-      "[" ^ (helper l) ^ "]\n"
-    end
 
   (* Looks up the given function in the list of already known classifications,
    * as well as the initial list of classifications *)
@@ -109,7 +98,7 @@ functor MkClassifier (
           [] => Full acc
         | (f as (name,dec_info,output,table))::fns' =>
             if susp (name, dec_info)
-            then Susp (acc, (name,dec_info), fn acc' => folder g (g (f, acc')) fns')
+            then Susp (acc, (name,dec_info), fn acc' => folder g acc' fns')
             else folder g (g (f, acc)) fns'
     in
       folder (getFunctionType allFns) [] fns

@@ -10,6 +10,20 @@ struct
   type dec_info = Ast.region option * Ast.dec option
   type classifications = ((Ast.path * dec_info) * classification) list
 
+  val toString =
+   fn Unknown syms =>
+        "[" ^ String.concatWith ", " (List.map Symbol.name syms) ^ "]"
+    | NonRecursive => "NonRecursive"
+    | Recursive => "Recursive"
+    | TailRecursive => "TailRecursive"
+
+  fun classificationsToString cls =
+    String.concatWith "\n" (
+      List.map (fn ((path, _), c) =>
+        String.concatWith "." (List.map Symbol.name path)
+        ^ " is " ^ toString c) cls
+    )
+
   local
     val to_path = List.rev o List.mapi (
         fn (0, sym) => Symbol.varSymbol sym
