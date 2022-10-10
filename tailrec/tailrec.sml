@@ -144,19 +144,22 @@ struct
           mapfst (regionify region) (find_dec table bound tail d')
       | OpenDec paths => ([], table)
       | OvldDec x => raise Fail "idk what this is"
-      | SeqDec decs =>
-          let
-            val (l, t) = List.foldl (fn (d, (l, t)) =>
-              let
-                val (l', t') = find_dec t bound false d
-              in
-                (l @ l', t')
-              end
-            ) ([], table) (List.take (decs, List.length decs - 1))
-            val (l1, t) = find_dec t bound tail (List.last decs)
-          in
-            (l @ l1, t)
-          end
+      | SeqDec decs =>(
+          case decs of
+            [] => ([], table)
+          | _  =>
+            let
+              val (l, t) = List.foldl (fn (d, (l, t)) =>
+                let
+                  val (l', t') = find_dec t bound false d
+                in
+                  (l @ l', t')
+                end
+              ) ([], table) (List.take (decs, List.length decs - 1))
+              val (l1, t) = find_dec t bound tail (List.last decs)
+            in
+              (l @ l1, t)
+            end)
       | SigDec sigs => ([], table)
       | StrDec strbs => ([], table)
       | TypeDec tb => ([], table)
